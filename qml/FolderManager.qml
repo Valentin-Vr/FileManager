@@ -5,59 +5,64 @@ import QtQuick.Layouts 1.15
 import Ust1 1.0
 
 Page {
+    property var fileList
+    property int _currentIndex: -1
 
     FileEngine{
         id: foldersModel
     }
 
     ScrollView {
+        id: scrollView
         anchors.fill: parent
+        anchors.rightMargin: 5
         clip: true
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.rightMargin: 20
 
             Repeater {
-
                 id: repeater
                 model: foldersModel
-
-                RowLayout {
+                delegate: RowLayout {
                     Layout.fillWidth: true
-                    Layout.leftMargin: model.level * 30
+                    Layout.leftMargin: model.level * 20
 
-                    Label {
-                        id: openIndicator
-                        text: model.isOpen ? "-" : "+"/*(model.childrenCount > 0 ? (model.isOpen ? "-" : "+") : "-")*/
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                if (model.isOpen === false) {
-                                    foldersModel.nextFolder(index);
-                                } else
-                                    foldersModel.previousFolder(index);
+                    Button {
+                        Layout.preferredWidth: icon.width
+                        Layout.preferredHeight: icon.height
+                        background: Rectangle {
+                            color: index === _currentIndex ? "lightgrey" : "transparent"
+                        }
+                        padding: 0
+                        icon.source: model.isOpen ? "images/minus.png" : "images/plus.png"
+                        enabled: model.childrenCount
+                        onClicked: {
+                            if (model.isOpen === false) foldersModel.nextFolder(index);
+                            else {
+                                _currentIndex = -1;
+                                foldersModel.previousFolder(index);
                             }
                         }
                     }
 
                     Label {
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: implicitWidth
+                        Layout.preferredHeight: parent.height
                         text: model.path
-                        //                        background: Rectangle {
-                        //                            color: index == curIndex ? Material.accentColor : "transparent"
-                        //                        }
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 10
+                        rightPadding: 10
+                        background: Rectangle {
+                            color: index === _currentIndex ? "lightgrey" : "transparent"
+                        }
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                //                                foldersModel.nextFolder(index)
-                            }
-                            onDoubleClicked: {
-                                //                                curIndex = index
-                                //                                selectedModel.folder = model.url
-                                //                                folderModel.folder = "file:///"
-                                //                                folderModel.folder = model.url
+                                _currentIndex = index;
+                                foldersModel.createFileList(model.path + "/");
+                                fileList = foldersModel.fileList;
                             }
                         }
                     }

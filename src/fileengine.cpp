@@ -4,8 +4,6 @@
 #include <QDir>
 #include <QFileInfoList>
 
-//static QString PATH = QDir::rootPath();
-
 FileEngine::FileEngine(QObject *parent): QAbstractListModel (parent)
 {
     QFileInfoList mainDiscList = QDir::drives();
@@ -16,16 +14,6 @@ FileEngine::FileEngine(QObject *parent): QAbstractListModel (parent)
         Folder folder(0, mainDiscList[i].filePath(), foldersCount, !foldersCount);
         m_dirList.append(folder);
     }
-
-    //создание модели со всеми папками со всех дисков
-    //    for (int i = 0; i < 2; ++i) {
-    //        int tempCount = m_dirList.count() - 1;
-    //        if (m_dirList.count() == 0)
-    //            tempCount = 0;
-    //        Folder folder(0, tempCount, mainFolderList[i].filePath());
-    //        m_dirList.append(folder);
-    //        addFolderList(folder);
-    //    }
 }
 
 QVariant FileEngine::data(const QModelIndex &index, int role) const
@@ -75,10 +63,8 @@ void FileEngine::nextFolder(const int index)
             int foldersCount = tempNextFoldersList.count();
             Folder nextFolder(previousFolder.m_level + 1,
                               nextFoldersList[i].filePath(),
-                              foldersCount);
-            if (foldersCount > 0)
-                nextFolder.m_isOpen = false;
-            else nextFolder.m_isOpen = true;
+                              foldersCount,
+                              !foldersCount);
             m_dirList.insert(index + 1 + i, nextFolder);
         }
         m_dirList[index].m_isOpen = true;
@@ -90,11 +76,23 @@ void FileEngine::previousFolder(const int index)
 {
     Folder previousFolder = m_dirList[index];
     if (previousFolder.m_isOpen && previousFolder.m_childrenCount > 0) {
-        for (int i = 0; i < previousFolder.m_childrenCount; ++i)
+        for (int i = 0; i < previousFolder.m_childrenCount; ++i) {
+            FileEngine::previousFolder(index + 1);
             m_dirList.removeAt(index + 1);
+        }
         m_dirList[index].m_isOpen = false;
         updateData();
     }
+}
+
+void FileEngine::createFileList(const QString &path)
+{
+    QDir tempWay(path);
+    QFileInfoList tempFileList = tempWay.entryInfoList((QDir::Files));
+    QStringList fileList;
+    for (int i = 0; i < tempFileList.count(); ++i)
+        fileList.append(tempFileList[i].fileName());
+    setFileList(fileList);
 }
 
 void FileEngine::updateData()
@@ -103,46 +101,15 @@ void FileEngine::updateData()
     endResetModel();
 }
 
-//void FileEngine::nextFolder(const Folder &previousFolder)
-//{
-//    QDir tempWay(previousFolder.m_path);
-//    QFileInfoList tempFolderList = tempWay.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
-//    if (tempFolderList.count() > 0) {
-//        for (int i = 0; i < tempFolderList.count(); ++i) {
-//            Folder nextFolder(previousFolder.m_level + 1,
-//                              previousFolder.m_parentIndex + 1 + i,
-//                              tempFolderList[i].filePath());
-//            m_dirList.insert(previousFolder.m_parentIndex + i + 1, nextFolder);
-//        }
-//    }
-//}
-
-//создание модели со всеми папками со всех дисков
-//void FileEngine::addFolderList(const Folder &previousFolder)
-//{
-//    QDir tempWay(previousFolder.m_path);
-//    QFileInfoList tempFolderList = tempWay.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
-//    if (tempFolderList.count() > 0) {
-//        for (int i = 0; i < tempFolderList.count(); ++i) {
-//            Folder nextFolder(previousFolder.m_level + 1,
-//                              previousFolder.m_parentIndex,
-//                              tempFolderList[i].filePath());
-//            m_dirList.append(nextFolder);
-//            addFolderList(nextFolder);
-//        }
-//    }
-//}
-//
-
-bool FileEngine::showFile() const
+const QStringList &FileEngine::fileList() const
 {
-    return m_showFile;
+    return m_fileList;
 }
 
-void FileEngine::setShowFile(bool newShowFile)
+void FileEngine::setFileList(const QStringList &fileList)
 {
-    if (m_showFile == newShowFile)
+    if (m_fileList == fileList)
         return;
-    m_showFile = newShowFile;
-    emit showFileChanged();
+    m_fileList = fileList;
+    emit fileListChanged();
 }

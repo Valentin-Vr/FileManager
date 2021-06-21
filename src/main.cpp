@@ -1,11 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-//
-#include <QQmlContext>
-//
 #include "fileengine.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -18,10 +14,7 @@ int main(int argc, char *argv[])
         qmlRegisterType<FileEngine>("Ust1", 1 , 0, "FileEngine");
 
     QQmlApplicationEngine engine;
-    //
-//    FileEngine fileEngine;
-//    engine.rootContext()->setContextProperty("myData", &fileEngine);
-    //
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {

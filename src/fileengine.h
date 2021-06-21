@@ -7,11 +7,6 @@
 
 struct Folder {
     Folder() = default;
-    //    создание модели со всеми папками со всех дисков
-    //    Folder(const int level, const int parentIndex, const QString &path) :
-    //        m_level(level), m_parentIndex(parentIndex), m_path(path) {}
-    //    int m_parentIndex;
-    //
     Folder(const int level, const QString &path, const int childrenCount, const bool isOpen) :
         m_level(level), m_path(path), m_childrenCount(childrenCount), m_isOpen(isOpen) {}
     Folder(const int level, const QString &path, const int childrenCount) :
@@ -42,27 +37,22 @@ public:
 
     Q_INVOKABLE void nextFolder(const int index);
     Q_INVOKABLE void previousFolder(const int index);
-    Q_PROPERTY(bool showFile READ showFile WRITE setShowFile NOTIFY showFileChanged)
+    Q_INVOKABLE void createFileList(const QString &path);
 
-    bool showFile() const;
+    Q_PROPERTY(QStringList fileList READ fileList WRITE setFileList NOTIFY fileListChanged);
+
+public slots:
+    void setFileList(const QStringList &fileList);
 
 signals:
-    void showFileChanged();
-
-private slots:
-    void setShowFile(bool newShowFile);
+    void fileListChanged();
 
 private:
     QList<Folder> m_dirList;
-    QList<QString> m_fileList;
+    QStringList m_fileList;
+    const QStringList &fileList() const;
+
     void updateData();
-    //    void createFolderList(const QFileInfoList &pathList, const int listIndex);
-
-    //создание модели со всеми папками со всех дисков
-    //    void addFolderList(const Folder &previousFolder);
-    //
-
-    bool m_showFile;
 };
 
 #endif // FILEENGINE_H
